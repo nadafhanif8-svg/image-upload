@@ -3,51 +3,78 @@
 <head>
   <title>Free Image Upload</title>
   <style>
-    body { font-family: Arial; text-align: center; margin-top: 50px; }
-    button { padding: 10px 20px; }
-    img { max-width: 300px; margin-top: 20px; }
+    body {
+      font-family: Arial;
+      text-align: center;
+      margin-top: 40px;
+    }
+    button {
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+    .link {
+      margin: 5px 0;
+      width: 80%;
+    }
   </style>
 </head>
 <body>
 
-<h2>Upload Image & Get Direct Link</h2>
+<h2>Upload Images & Get Direct Links (FREE)</h2>
 
-<input type="file" id="file">
+<input type="file" id="files" multiple accept="image/*">
 <br><br>
-<button onclick="uploadImage()">Upload</button>
+<button onclick="uploadImages()">Upload</button>
 
 <p id="status"></p>
-<input type="text" id="url" style="width:80%" readonly>
 
-<img id="preview">
+<div id="links"></div>
 
 <script>
-function uploadImage() {
-  const file = document.getElementById("file").files[0];
-  if (!file) return alert("Please select image");
+function uploadImages() {
+  const files = document.getElementById("files").files;
+  const status = document.getElementById("status");
+  const linksDiv = document.getElementById("links");
 
-  document.getElementById("status").innerText = "Uploading...";
+  if (files.length === 0) {
+    alert("Please select images");
+    return;
+  }
 
-  const formData = new FormData();
-  formData.append("image", file);
+  status.innerText = "Uploading " + files.length + " image(s)...";
+  linksDiv.innerHTML = "";
 
-  fetch("https://api.imgbb.com/1/upload?key=fetch("https://api.imgbb.com/1/upload?key=44016853301603c8f0ba06a0f93f370d", {", {
-    method: "POST",
-    body: formData
-  })
-  .then(res => res.json())
-  .then(data => {
-    const url = data.data.url;
-    document.getElementById("url").value = url;
-    document.getElementById("preview").src = url;
-    document.getElementById("status").innerText = "Upload successful!";
-  })
-  .catch(() => {
-    document.getElementById("status").innerText = "Upload failed!";
+  let uploaded = 0;
+
+  Array.from(files).forEach(file => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    fetch("https://api.imgbb.com/1/upload?key=44016853301603c8f0ba06a0f93f370d", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = data.data.url;
+        input.readOnly = true;
+        input.className = "link";
+        linksDiv.appendChild(input);
+      }
+      uploaded++;
+      if (uploaded === files.length) {
+        status.innerText = "All images uploaded successfully!";
+      }
+    })
+    .catch(() => {
+      status.innerText = "Some uploads failed!";
+    });
   });
 }
 </script>
 
 </body>
 </html>
-
