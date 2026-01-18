@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Free Image Upload</title>
+  <style>
+    body { font-family: Arial; text-align: center; margin-top: 50px; }
+    button { padding: 10px 20px; }
+    img { max-width: 300px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<h2>Upload Image & Get Direct Link</h2>
+
+<input type="file" id="file">
+<br><br>
+<button onclick="uploadImage()">Upload</button>
+
+<p id="status"></p>
+<input type="text" id="url" style="width:80%" readonly>
+
+<img id="preview">
+
+<script>
+function uploadImage() {
+  const file = document.getElementById("file").files[0];
+  if (!file) return alert("Please select image");
+
+  document.getElementById("status").innerText = "Uploading...";
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  fetch("https://api.imgbb.com/1/upload?key=ImgBB API key", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    const url = data.data.url;
+    document.getElementById("url").value = url;
+    document.getElementById("preview").src = url;
+    document.getElementById("status").innerText = "Upload successful!";
+  })
+  .catch(() => {
+    document.getElementById("status").innerText = "Upload failed!";
+  });
+}
+</script>
+
+</body>
+</html>
