@@ -1,266 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pro Image Upload Tool - Compressed & History</title>
+  <title>Free Image Upload</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       text-align: center;
-      margin: 40px;
-    }
-    #drop-area {
-      border: 2px dashed #ccc;
-      padding: 30px;
-      margin-bottom: 20px;
-      cursor: pointer;
-      border-radius: 10px;
-      background: #f9f9f9;
-      transition: 0.2s;
-    }
-    #drop-area.hover {
-      background: #e0f7fa;
-      border-color: #00bcd4;
-    }
-    #files {
-      display: none;
+      margin-top: 40px;
     }
     button {
       padding: 10px 20px;
-      margin: 5px;
       cursor: pointer;
     }
-    #links input {
+    .link {
       margin: 5px 0;
       width: 80%;
-    }
-    #preview {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 20px;
-    }
-    .preview-item {
-      position: relative;
-      margin: 5px;
-    }
-    .preview-item img {
-      width: 120px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 5px;
-      border: 1px solid #ddd;
-    }
-    .delete-btn {
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      background: red;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 22px;
-      height: 22px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .progress-bar {
-      width: 120px;
-      height: 5px;
-      background: #ddd;
-      border-radius: 5px;
-      margin-top: 2px;
-      overflow: hidden;
-    }
-    .progress {
-      height: 100%;
-      width: 0;
-      background: #00bcd4;
-    }
-    #history {
-      margin-top: 30px;
-      text-align: left;
-      width: 80%;
-      max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    #history h3 {
-      margin-bottom: 10px;
-    }
-    #history ul {
-      list-style: none;
-      padding-left: 0;
-    }
-    #history li {
-      margin-bottom: 5px;
-      word-break: break-all;
     }
   </style>
 </head>
 <body>
 
-<h2>Pro Image Upload Tool - Compressed & History</h2>
+<h2>Upload Images & Get Direct Links (FREE)</h2>
 
-<div id="drop-area">
-  <p>Drag & Drop Images Here<br>or Click to Select</p>
-  <input type="file" id="files" multiple accept="image/*">
-</div>
-
+<input type="file" id="files" multiple accept="image/*">
+<br><br>
 <button onclick="uploadImages()">Upload</button>
-<button onclick="copyAllLinks('plain')">Copy Plain Links</button>
-<button onclick="copyAllLinks('markdown')">Copy Markdown</button>
-<button onclick="copyAllLinks('html')">Copy HTML</button>
 
 <p id="status"></p>
-<div id="links"></div>
-<div id="preview"></div>
 
-<div id="history">
-  <h3>Previously Uploaded Images:</h3>
-  <ul id="history-list"></ul>
-</div>
+<div id="links"></div>
 
 <script>
-let selectedFiles = [];
-let uploadedHistory = JSON.parse(localStorage.getItem("uploadedHistory") || "[]");
-
-// Initialize history
-const historyList = document.getElementById("history-list");
-uploadedHistory.forEach(url => addHistoryItem(url));
-
-function addHistoryItem(url) {
-  const li = document.createElement("li");
-  li.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
-  historyList.appendChild(li);
-}
-
-// Drag & Drop
-const dropArea = document.getElementById("drop-area");
-const fileInput = document.getElementById("files");
-
-dropArea.addEventListener("click", () => fileInput.click());
-dropArea.addEventListener("dragover", e => { e.preventDefault(); dropArea.classList.add("hover"); });
-dropArea.addEventListener("dragleave", () => dropArea.classList.remove("hover"));
-dropArea.addEventListener("drop", e => { e.preventDefault(); dropArea.classList.remove("hover"); handleFiles(e.dataTransfer.files); });
-fileInput.addEventListener("change", e => handleFiles(e.target.files));
-
-function handleFiles(files) {
-  Array.from(files).forEach(file => {
-    selectedFiles.push(file);
-    const previewDiv = document.getElementById("preview");
-    const itemDiv = document.createElement("div");
-    itemDiv.className = "preview-item";
-
-    const img = document.createElement("img");
-    img.src = URL.createObjectURL(file);
-    itemDiv.appendChild(img);
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "delete-btn";
-    deleteBtn.innerText = "×";
-    deleteBtn.onclick = () => {
-      selectedFiles = selectedFiles.filter(f => f !== file);
-      previewDiv.removeChild(itemDiv);
-    };
-    itemDiv.appendChild(deleteBtn);
-
-    const progressBar = document.createElement("div");
-    progressBar.className = "progress-bar";
-    const progress = document.createElement("div");
-    progress.className = "progress";
-    progressBar.appendChild(progress);
-    itemDiv.appendChild(progressBar);
-
-    previewDiv.appendChild(itemDiv);
-    file.progressElement = progress;
-  });
-}
-
-// Compress image using canvas
-function compressImage(file, maxWidth = 1024, quality = 0.7) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const scale = Math.min(maxWidth / img.width, 1);
-      canvas.width = img.width * scale;
-      canvas.height = img.height * scale;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(blob => resolve(new File([blob], file.name, {type: "image/jpeg"})), "image/jpeg", quality);
-    };
-    img.src = URL.createObjectURL(file);
-  });
-}
-
-// Upload Images
-async function uploadImages() {
-  if (selectedFiles.length === 0) { alert("Please select images first!"); return; }
+function uploadImages() {
+  const files = document.getElementById("files").files;
   const status = document.getElementById("status");
   const linksDiv = document.getElementById("links");
+
+  if (files.length === 0) {
+    alert("Please select images");
+    return;
+  }
+
+  status.innerText = "Uploading " + files.length + " image(s)...";
   linksDiv.innerHTML = "";
-  status.innerText = `Uploading ${selectedFiles.length} image(s)...`;
 
-  let uploadedCount = 0;
+  let uploaded = 0;
 
-  for (let i = 0; i < selectedFiles.length; i++) {
-    let file = selectedFiles[i];
-    file = await compressImage(file); // compress image
-
+  Array.from(files).forEach(file => {
     const formData = new FormData();
     formData.append("image", file);
 
-    await new Promise(resolve => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "https://api.imgbb.com/1/upload?key=44016853301603c8f0ba06a0f93f370d");
-
-      xhr.upload.addEventListener("progress", e => {
-        if (e.lengthComputable) {
-          const percent = (e.loaded / e.total) * 100;
-          file.progressElement.style.width = percent + "%";
-        }
-      });
-
-      xhr.onload = () => {
-        const data = JSON.parse(xhr.responseText);
-        if (data.success) {
-          const input = document.createElement("input");
-          input.type = "text";
-          input.value = data.data.url;
-          input.readOnly = true;
-          input.className = "link";
-          linksDiv.appendChild(input);
-
-          // Add to history
-          uploadedHistory.push(data.data.url);
-          localStorage.setItem("uploadedHistory", JSON.stringify(uploadedHistory));
-          addHistoryItem(data.data.url);
-        }
-        uploadedCount++;
-        status.innerText = `Uploading ${uploadedCount}/${selectedFiles.length} image(s)...`;
-        resolve();
-      };
-
-      xhr.onerror = () => { uploadedCount++; status.innerText = `Uploading ${uploadedCount}/${selectedFiles.length} (Some failed)`; resolve(); };
-      xhr.send(formData);
+    fetch("https://api.imgbb.com/1/upload?key=44016853301603c8f0ba06a0f93f370d", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = data.data.url;
+        input.readOnly = true;
+        input.className = "link";
+        linksDiv.appendChild(input);
+      }
+      uploaded++;
+      if (uploaded === files.length) {
+        status.innerText = "All images uploaded successfully!";
+      }
+    })
+    .catch(() => {
+      status.innerText = "Some uploads failed!";
     });
-  }
-  selectedFiles = [];
-  status.innerText = "All images uploaded successfully!";
-}
-
-// Copy links
-function copyAllLinks(format) {
-  const links = Array.from(document.querySelectorAll("#links input")).map(input => input.value);
-  if (links.length === 0) { alert("No links to copy!"); return; }
-
-  let text;
-  if (format === "markdown") text = links.map(url => `![image](${url})`).join("\n");
-  else if (format === "html") text = links.map(url => `<img src="${url}" alt="image">`).join("\n");
-  else text = links.join("\n");
-
-  navigator.clipboard.writeText(text).then(() => alert("Links copied in " + format + " format!"))
-  .catch(() => alert("Failed to copy links."));
+  });
 }
 </script>
 
